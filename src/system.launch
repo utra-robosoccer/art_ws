@@ -1,0 +1,9 @@
+<launch>	
+	<rosparam param="art/setup/map_resolution">0.05</rosparam>
+	<rosparam param="art/setup/motor_constant">5</rosparam>
+	<rosparam param="art/setup/sensors/sick_max_range">20</rosparam>
+
+
+	<node name="path_planner" pkg="path_planner" type="path_planner" output="screen" />
+	<node name="localmapserver" pkg="localmapserver" type="localmapserver" output="screen" />
+</launch>

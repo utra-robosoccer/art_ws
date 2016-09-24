@@ -1,0 +1,5 @@
+<launch>
+	<rosparam param="/art/debug/">1</rosparam>
+	
+	<include file="system.launch" />	
+</launch>

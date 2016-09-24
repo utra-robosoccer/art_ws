@@ -1,0 +1,346 @@
+This repository contains all of the ros nodes and algorithms required to run the "brain" of the model.
+
+SIMULATOR
+=========
+
+How to run the simulator
+========================
+
+To run the simulator, first switch into the path planning directory:
+
+cd ~/art-meta/src/art-pathplanning-2014/
+
+Then launch the simulator with this command:
+
+roslaunch simulation.launch
+
+Once RViz opens, you can load the cofiguration file by going to File >
+Open Config, and then navigation to the file
+~/art-meta/src/art-pathplanning-2014/simulation_config.rviz. Once
+you've opened it once, next time you can access it more quickly by
+navigating to File > Recent Configs.
+
+You should see the rover on the map. To start it moving, execute the
+following in a new tab (again, in the path planning directory):
+
+./reset_simulation
+
+It might take ~5-10 seconds for the rover to start moving. I'll try to
+make this faster.
+
+If the rover ever hits a wall, or if the path planner gets confused
+and freezes, or if the rover gets into a weird state, you can reset
+things and try again by executing the ./reset_simulation command
+again.
+
+How to interpret the simulator output
+=====================================
+
+When you start up the simulator, you should see a list of "layers" on
+the left hand side. Each of these layers can be turned on or off with
+the checkbox. Here's what each layer shows:
+
+Grid: default layer, can be ignored.
+
+Global Map: this is the course map that the simulator is currently
+running (see below, how to configure the map). It's drawn in black and
+grey.
+
+Rover Body: this is a tiny green square around the rover's
+location. It's kind of hard to see unless you zoom in.
+
+Rover Heading: this is the red/green/blue cross that shows where the
+rover is and which direction it's facing. Red is the front of the
+rover and points in the forward direction.
+
+Lidar Data: these are the white dots on the map which represent the
+fake Lidar data that the simulator is generating. Each dot represents
+one "ray" of the laser beam.
+
+Rover's Map: this is an overlay which represents what the rover can
+currently see. Obstacles that are visible are in red, and "exapanded"
+obstacles are in yellow. The rover "expands" all of the obstacles it
+sees in order to give a bit of "buffer space" around each
+obstacle. This ensures that we keep pretty far away from any obstacle
+and don't accidentally graze it as we're going by. The rover's map
+also highlights (in purple) the cells that the rover is planning to
+drive through.
+
+Rover's Planned Path: this is the path the rover plans to take (drawn
+in green). This completely overlaps the purple highlight from above,
+so it's not really particularly useful.
+
+Rover' Current Move: this is a big blue arrow that represents what
+motor command the rover is currently trying to do. The arrow points in
+the direction that the rover thinks it should go first. If the arrow
+is pretty close to being straight forward, the rover will go
+forward. If the arrow is far enough left or right, the rover will
+turn. Note that currently there is only one turning speed. This means
+that there is no difference between an arrow pointed 45 degrees right
+and 75 degrees right. They both just cause the rover to turn right.
+
+How to configure the map
+========================
+
+If you open up the launch file
+(~/art-meta/src/art-pathplanning-2014/simulation.launch), then you
+will see a line like this: 
+
+<rosparam param="/art/simulation/global_map_file_name">globalMap.txt</rosparam>
+
+This line specifies which map file should be loaded. By default it
+loads globalMap.txt (which is located at
+~/art-meta/src/simulator/data/globalMap.txt). By changing the line in
+the launch file, you can specify a different file in that
+directory. The format of the map file looks like this:
+
+100 22
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+X......................X....................XX.......................................X............XX
+X..O..........................XXXXXXXXXXX...X.....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..X..XXXXXXXX..XX
+X.............................X.............X....XX.....X............................X.....X......XX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.............X...XX......X.......XXXXXXXXXXXXXXXXXXXXXXXX...X..XXXXXX
+X..................X.......XX.....XXXXXXXXXXX...X.......X....XXXX......................X...X.......X
+X........X.................XX.....XXXXXX........X.......X....XXXX..............XXXXX...X...XX......X
+X.......XXXXXXXXXXXXXXXXXXXXX.....XXX.......XXXXX.......X....XXXX...XXXXXXXXXXXX...X......XXXXXXXX.X
+X.......XXXXXXX...................XX......XXX...........X....XXXX...X..XXXXXXXXX...XXXXXXXXX.......X
+X.......XXXXXX...................XX......XX.............X...........X..X......................XXXXXX
+X.......XXXXXX....XXXXXXXXXXXXXXXXX......X..............X...........X..X................XXXXXXX....X
+X...........XXX........................XXX..............XXXXXXXXXXXXXXXX...........................X
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.........................................................X
+X..................................................................................................X
+X..................................................................................................X
+X..................................................................................................X
+X..................................................................................................X
+X...................................................................................................
+X...................................................................................................
+X...................................................................................................
+....................................................................................................
+....................................................................................................
+
+The first line contains two numbers, specifying the width and height
+of the map respectively. The next lines specify where the obstacles
+should be in the map. The symbols used are:
+
+. means no obstacle
+X means obstacle
+O is the initial location of the rover
+
+List of nodes running in the simulator
+======================================
+
+Here's a list of the nodes that run in the simulation, and what they
+do:
+
+* Simulator (code in: ~/art-meta/src/simulator/src/main.cpp)
+    This node loads the global map and then simulates the rover moving
+    through this map. Note that this isn't the node that generates the
+    GUI window that you see. The simulator node is running in the
+    background generating data, and then Rviz (see below) draws all of
+    it onto the screen. At each instant in time, the simulator looks
+    at where the rover is in the world and generates fake sensor
+    data. It simulates three types of sensors:
+     - The LIDAR: it generates fake LIDAR messages and sends them out
+       on the ROS topic called "/scan"
+     - The GPS: it generates fake GPS messages and sends them out on
+       the ROS topic called "/gps_data"
+     - The IMU: it generates fake IMU messages (which just gives the
+       current yaw of the rover - this is the compass direction that
+       the rover is facing). It sends them out on the ROS topic called
+       "/imu_data"
+    The simulator also receives messages on the "/simulator_cmds"
+    topic. These are instructions about how fast to spin each of the
+    motors (left motor and right motor). It uses this messages to move
+    the virtual robot around in the world. As the virtual robot moves,
+    it recalculates what the sensor data should be for the new
+    position and re-sends all of the sensor data.
+
+    Incoming connections: /simulator_cmds
+    Outgoing connections: /scan, /gps_data, /imu_data
+
+* RViz (built-in node, no source code)
+    This is a built-in ROS node which provides the GUI for the
+    simulator. It's the GUI that you see when you run the simulator.
+
+    Incoming connections: a lot, it's listening to basically
+    everything and drawing it. To see the full list, run `rosnode info
+    rviz` when the simulator is running.
+    Outgoing connections: none (that are relevant).
+
+* Localmapserver (code in ~/art-meta/src/localmapserver/src/main.cpp)
+    This node converts the LIDAR scan data into the format that the
+    path planner is expecting. The initial format of the data is a
+    basically polar coordinates (for each direction, we have the
+    distance to the nearest obstacle). We want to get a grid, where
+    each cell in the grid is either an obstacle or free space (since
+    our path planner needs a grid). In the future, the localmapserver
+    might also receive messages from the camera and combine that data
+    with the LIDAR data to create an overall grid of obstacles.
+
+    Incoming connections: /scan (the LIDAR data)
+    Outgoing connections: /art/map/local (this is the grid that
+    path_planner expects)
+
+* Path planner (code in ~/art-meta/src/art-pathplanning-2014/src/path_planner.cpp)
+    This node actually runs the path planning and makes a path from
+    the current rover position to a goal point. Right now, the goal
+    point is currently a hard-coded GPS value. The rover is always
+    trying to get to the same place in the map. This point is defined
+    in the file
+    ~/art-meta/src/art-pathplanning-2014/include/path_planner/path_planner.h,
+    it's "const GpsInfo globalGpsGoalLocation(latitude, longitude);"
+    It outputs a path on the ROS topic "/path". The format of the path
+    is a list of points that the rover should travel through. The
+    points should be interpreted as offsets from the rover's current
+    position. The first point is always (0, 0). For example, here's a
+    valid path:
+
+    Path example: [(0, 0), (0, 1), (0, 2), (0, 3), (1, 3), (2, 4), (3,
+    4), (4, 4)]
+
+    Note that the grid that is being used to plan the path is always
+    relative to the rover's current position, and always oriented in
+    the same direction with respect to the rover. If the grid size is
+    (x, y), then the rover is always at the position (x/2, y/2) in the
+    middle of the grid, and the positive y direction always represents
+    the rover going straight forward.
+
+    Incoming connections: /art/map/local, /gps_data, /imu_data
+    Outgoing connections: /path
+
+* Motor driver (main code in
+  ~/art-meta/src/art-motorcommands/src/motor_driver.cpp, other code in
+  lots of functions in ~/art-meta/src/art-motorcommands/src/*)
+    This node converts the path into a series of motor commands. Right
+    now the functionality is very basic. It just emits a single motor
+    command. The motor driver just looks at the very beginning of the
+    path and decides whether the path looks like it's going mostly
+    forward, mostly left, or mostly right. If it's straight, the motor
+    command will be to spin both motors forward at the same speed. If
+    it's left or right, the command will be to spin one of the wheels
+    a little faster than the other to cause to rover to turn
+    slightly. The motor commands will be sent out on the ROS topic
+    "/motor_commands".
+
+    The command list has a format something like this:
+    Command 0 : L 6 R 6 T 1
+    Command 1 : L 3 R 6 T 2
+    Command 2 : L 6 R 3 T 2
+    Command 3 : L -6 R -6 T 1
+    Each command has a left motor speed (L), a right motor speed (R),
+    and a duration in seconds (T). So for example, the first command
+    says: "spin the left motor forward at speed 6 and the right motor
+    forward at speed 6, and do this for 1 second." Negative motor
+    speeds mean spin backwards. The motor speeds are arbitrary units,
+    so the actual numbers don't mean anything physical.
+
+    Incoming connections: /path
+    Outgoing connections: /motor_commands
+
+* Ggb (code in: ~/art-meta/src/ggb/src/ggb_tx_rx.cpp)
+    Ggb stands for Golden Gate Bridge and was a stupid joke from last
+    year :P This is the node that will relay the motor commands to the
+    microcontroller running on the rover (it acts as a bridge between
+    the computer and the microcontroller, hence the stupid name). It
+    receives the list of motor commands from the motor driver, and
+    then it sends them out over the serial port to the
+    microcontroller. When running in the simulator, we don't want the
+    commands to go over the serial port, we want them to be fed back
+    into the simulator. So ggb also sends messages on a ROS topic
+    called "/simulator_cmds", which the simulator receives and
+    processes.
+
+    Note that ggb also parses the durations of the commands and makes
+    sure they get sent out in the right order and at the right
+    times. For example, suppose ggb receives the following command list:
+
+    Command 0 : L 6 R 6 T 1
+    Command 1 : L 3 R 6 T 2
+    Command 2 : L 6 R 3 T 2
+    Command 3 : L -6 R -6 T 1
+
+    It will:
+     1. Send out the command L 6 R 6
+     2. Wait for 1 second
+     3. Send out the command L3 R 6
+     4. Wait for 2 seconds
+     ...
+     
+    Once it has finished sending out all commands on the list, it will
+    send out a final command telling the rover to stop. Also, if ggb
+    receives a new command list while it's still sneding out commands
+    from an old list, it will immediately abort the old list and
+    switch to the new list. Ideally, ggb will never actually get to
+    send the final "stop" command, because a new updated list of
+    commands will alwyas arrive before it finishes with the old list.
+
+    Also, note that currently the motor driver is only sending out
+    command lists with one command in them, so a lot of the
+    functionality of ggb isn't really being used.
+
+How to read the launch file
+===========================
+
+This simulator uses a launch file to start up multiple ROS nodes
+simultaneously. You can look at the launch file for more details,
+(~/art-meta/src/art-pathplanning-2014/simulation.launch). There are
+two kinds of lines in this file. There are node lines, e.g.
+
+<node name="simulator" pkg="simulator" type="simulator" cwd="node" output="screen" />
+
+These lines start up a particular ROS node. To be honest, I don't know
+what the different is between the 'name', 'pkg', and 'type' fields, I
+always just set them to the same value (which is the name of the node
+to run). The 'cwd' param sets the current-working-directory for the
+node (which is important in the case of the simulator, because it will
+try to find the global map file with a relative path, so its
+current-working-directory needs to be set properly. The 'output' param
+sets where to direct the node's output (in this case, to the terminal
+screen). All of this is standard ROS stuff, so you can look up 'ROS
+launch files' for more info.
+
+There are also the rosparam lines, e.g.
+
+<rosparam param="/art/simulation/global_map_file_name">globalMap.txt</rosparam>
+
+These lines define special ROS variables that the code can use. The
+name of the variable is in the param field (in this example,
+"/art/simulation/global_map_file_name") and the value in in between
+the XML tags (in this example, "globalMap.txt").
+
+Current params:
+ - do_serial: whether or not ggb should try to send messages over the
+   serial port. Since we're running in the simulator with no
+   microcontroller attached, this is false for now.
+ - /art/simulator/data_dir: this is the path to the directory where
+   the map data should be found.
+ - /art/simulation/global_map_file_name: this is the name of the
+   global map file to load. It should be located inside of the
+   directory above.
+ - /art/setup/motor_constant: a magic number that sets how fast or
+   slow the motors move in response to a command. The higher this
+   number, the *slowed* the rover will move in response to the same
+   command.
+
+END OF SIMULATOR DESCRIPTION
+
+
+For image processing algorithm testing, modify the vision package. The vision package acts as a library and the headers are exposed so that other ros packages may use the vision code.
+
+The vision package also creates its own executables so that the libraries can be tested without having to run ros nodes.
+
+The executables are contained in devel/lib/vision
+It is recommended that you store test footage in a folder exterrnal to the ROS workspace so that removing devel does not necessitate redownloading.
+
+
+This repository should build in the VM with no problems.
+
+In the ~ directory, run:
+
+> hg clone https://bitbucket.org/utra-art/art-meta
+
+Also: if you choose to put the new meta workspace in a different directory from the original art_ws, then you need to also edit your ~/.bashrc to source ~/<new_ws_directory>/devel/setup.bash instead  of the old path, otherwise you will *tear your hair out for hours* trying to figure out why the changes that you make to your ros nodes don't show up when you rosrun them.
+
+> cd art-meta
+
+> catkin_make

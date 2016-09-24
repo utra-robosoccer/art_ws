@@ -1,0 +1,14 @@
+<launch>
+	<rosparam param="do_serial">false</rosparam>
+	<rosparam param="/art/simulation/data_dir">./../../../src/simulator/data/</rosparam>
+
+	<rosparam param="/art/simulation/global_map_file_name">globalMap.txt</rosparam>
+	<rosparam param="/art/setup/motor_constant">20</rosparam>
+
+	<node name="rviz" pkg="rviz" type="rviz" />
+	<node name="localmapserver" pkg="localmapserver" type="localmapserver" />
+	<node name="motor_driver" pkg="motor_driver" type="motor_driver" output="screen" />
+	<node name="ggb" pkg="ggb" type="ggb" output="screen" />
+	<node name="simulator" pkg="simulator" type="simulator" cwd="node" output="screen" />
+	<node name="path_planner" pkg="path_planner" type="path_planner" output="screen" />
+</launch>

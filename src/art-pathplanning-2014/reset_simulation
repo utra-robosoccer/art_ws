@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+rostopic pub /art/simulation/reset std_msgs/Empty --once
+rostopic pub /art/simulation/run std_msgs/Empty --once

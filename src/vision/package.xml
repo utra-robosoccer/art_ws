@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <name>vision</name>
+  <version>0.0.0</version>
+  <description>The vision package</description>
+
+  <maintainer email="pkl.plum@gmail.com">ecat_</maintainer>
+
+  <license>T</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Expose this library's headers so that other packages may include them-->
+  <!-- http://answers.ros.org/question/12972/how-to-include-other-packages-headers/ -->
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"/>
+  </export>
+</package>

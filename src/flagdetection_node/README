@@ -1,0 +1,105 @@
+ROS Tutorial
+
+# **How to create a ROS package / node** #
+
+source: http://wiki.ros.org/ROS/Tutorials/CreatingPackage
+
+Disclaimer: The following ROS node creation instructions are purely based on my poor memory, so use with EXTREME CAUTION!
+
+
+N.B. If you are using the ART VM, catkin workspace has been created already => skip to Step 2
+
+Step 1: create catkin workspace
+	Source bash file:
+		$ source /opt/ros/hydro/setup.bash
+	Create directories:
+		$ mkdir -p ~/art_ws/src
+	Go to the directory:
+		$ cd ~/art_ws/src
+	Initialize workspace:
+		$ catkin_init_workspace
+
+Step 2: create a catkin packages
+	Go to catkin workspace:
+		$ cd ~/art_ws/src
+	Create a new package called my_art_package:
+		$ catkin_create_pkg my_art_package std_msgs rospy roscpp
+	Now you should see a my_art_package folder which contains a package.xml and a CMakeLists.txt
+
+Step 3: build package
+	Go to catkin workspace:
+		$ cd ~/art_ws
+	Build:
+		$ catkin_make
+
+
+
+# **How to create ROS custom messages** #
+
+source: http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv
+
+
+Step 1: create msg files
+	Create a folder named msg in the package directory. e.g. 
+		$ mkdir ~/art_ws/src/my_art_package/msg
+
+	Create msg files in the above folders. e.g.
+		---------------------------------------------------------
+		file: ~/art_ws/src/my_art_package/msg/flagBox.msg
+		----------------- file content begin --------------------
+		int32 mini
+		int32 maxi
+		int32 minj
+		int32 maxj
+		------------------ file content end ---------------------
+
+Step 2: build .msg file
+	In package.xml, uncomment the following two lines:
+		<build_depend>message_generation</build_depend>
+  		<run_depend>message_runtime</run_depend>
+
+
+	The following modifications are performed in CMakeLists.txt
+
+	Add "message_generation" to the find_package line so it look like the following:
+		find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation)
+
+	Uncomment/Add "CATKIN_DEPENDS message_runtime" to catkin_package:
+		catkin_package(
+			CATKIN_DEPENDS message_runtime ...
+		)
+
+	Uncomment/Add .msg files to add_message_files:
+		add_message_files(
+			FILES
+			flagBox.msg			<--- I only have one .msg file
+		)
+
+	Uncomment/Add "std_msgs" to generate_messages: 
+		generate_messages(
+			DEPENDENCIES
+			std_msgs
+		)
+
+Step 3: generate source files from the .msg files
+	Go to catkin workspace
+		$ cd ~/art_ws
+	Build package
+		$ catkin_make
+
+	N.B. As long as the build is successful (i.e. no error message), the header file will be generated.
+
+	Upon successful execution of the catkin_make command, you should find the header file(s) in 
+		~/art_ws/devel/include/my_art_package/
+
+	Now you can copy the header file(s) to the src directory in your package directory and include them in your code.
+
+
+
+ROS custom msg header file integration
+
+see http://wiki.ros.org/ROSNodeTutorialC%2B%2B#The_NodeExample_header
+
+
+
+If your ROS node implementation has depend files, make sure they appear in the "add_library", "add_dependencies", and "target_link_libraries" sections of CMakeLists.txt

@@ -1,0 +1,10 @@
+<launch>
+	<include file="system-debug.launch" />
+
+	<rosparam param="/art/simulation/data_dir">./../data/</rosparam>
+	<rosparam param="/art/simulation/global_map_file_name">curvyMap.txt</rosparam>
+
+	<node name="rviz" pkg="rviz" type="rviz" />
+	<node name="world" pkg="world" type="world" cwd="node" output="screen"/>
+	<!-- <node name="globalmapserver" pkg="globalmapserver" type="globalmapserver" output="screen" /> -->
+</launch>

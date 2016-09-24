@@ -1,0 +1,9 @@
+<launch>
+	<include file="system-debug.launch" />
+
+	<rosparam param="/art/simulation/data_dir">/home/art/art-meta/src/simulator/data/</rosparam>
+	<rosparam param="/art/simulation/global_map_file_name">globalMap.txt</rosparam>
+
+	<node name="rviz" pkg="rviz" type="rviz" />
+	<node name="simulator" pkg="simulator" type="simulator" output="screen"/>
+</launch>
