@@ -1,6 +1,6 @@
 # Build Instructions
 
-Before building, you need to ensure the following dependencies are installed: `sudo apt-get install libqt4core libqt4dev libqt4gui libeigen3-dev ros-kinetic-vision-opencv ros-kinetic-tf`.
+Before building, you need to ensure the following dependencies are installed: `sudo apt-get install -y qt-sdk libeigen3-dev ros-kinetic-vision-opencv ros-kinetic-tf`.
 
 To build, run:
 
