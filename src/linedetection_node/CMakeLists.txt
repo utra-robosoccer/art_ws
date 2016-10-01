@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   vision
 )
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 2 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -127,7 +127,7 @@ add_dependencies(imgproc_node EvalUtils LineDetectionThresholding)
 #
 #http://stackoverflow.com/questions/23124655/cmake-opencv-cannot-specify-link-libraries
 target_link_libraries(imgproc_node
-	${OpenCV_LIBS}
+	${OpenCV_LIBRARIES}
 	${catkin_LIBRARIES}
 	LineDetectionThresholding	#
 )
